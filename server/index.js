@@ -72,9 +72,16 @@ Examples of the tone to match:
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash-lite",
         contents: prompt,
+        config: {
+          systemInstruction: `You are an everyday customer casually typing a quick 1-sentence review on your phone.
+Sound natural, slightly rambly, and authentic. Never sound like an ad or AI bot.
+Never use these words: definitely, truly, overall, moreover, delightful, must-visit, highly recommend, vibe check, immaculate, no cap.
+Return strictly the ONE review sentence and nothing else.`,
+        },
       });
       let sentence = response.text.trim().replace(/^["'*]+|["'*]+$/g, "");
       if (!sentence) throw new Error("Empty response");
+      console.log(`[Gemini 3.5] Generated review for ${business.name}: "${sentence}"`);
       return res.json({ sentence, source: "gemini" });
     } catch (apiError) {
       console.warn("Gemini API call failed, using fallback:", apiError.message);
