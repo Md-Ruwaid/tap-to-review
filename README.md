@@ -59,3 +59,19 @@ npm install
 npm run dev
 ```
 Client starts on `http://localhost:5173`.
+
+---
+
+## ☁️ Deployment
+
+When deploying to Vercel (or any serverless platform):
+
+1. **Configure Environment Variables in Dashboard**:
+   - Go to **Project Settings** $\rightarrow$ **Environment Variables**.
+   - Add `GEMINI_API_KEY` and ensure it is enabled for the **Production** environment.
+   - *Note*: Environment variables must be set in the Vercel dashboard — they cannot be baked into code. After adding or modifying variables, trigger a redeploy for them to take effect.
+2. **Set Allowed Origins**:
+   - Add `ALLOWED_ORIGINS` with your production frontend URL (e.g. `https://tap-to-review.vercel.app`).
+3. **Deployment Protection**:
+   - Ensure **Vercel Authentication** is toggled off under **Settings $\rightarrow$ Deployment Protection** if public access is required.
+

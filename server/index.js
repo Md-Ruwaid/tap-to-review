@@ -9,6 +9,8 @@ const path = require("path");
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 dotenv.config();
 
+console.log(`GEMINI_API_KEY present: ${Boolean(process.env.GEMINI_API_KEY)}`);
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -85,17 +87,33 @@ app.get("/health", (req, res) => {
 });
 
 // Fetch business config (supports multi-cafe dynamic loading)
+// Note: vercel.json rewrites "/business/:id" -> "/api" without referencing :id in the destination.
+// Vercel forwards unused named parameters as query string parameters (?id=<value>),
+// so businessId must resolve from either req.params.id (local/direct) or req.query.id (Vercel rewrite).
 app.get("/business/:id", (req, res) => {
-  const business = getBusiness(req.params.id);
+  const businessId = req.params.id || req.query.id;
+  const business = getBusiness(businessId);
   if (!business) return res.status(404).json({ error: "Unknown business" });
-  res.json({ id: req.params.id, ...business });
+  res.json({ id: businessId, ...business });
 });
 
-// Support /api/business/:id as well
+// Support /api/business/:id as well (resolves from req.params.id or forwarded req.query.id)
 app.get("/api/business/:id", (req, res) => {
-  const business = getBusiness(req.params.id);
+  const businessId = req.params.id || req.query.id;
+  const business = getBusiness(businessId);
   if (!business) return res.status(404).json({ error: "Unknown business" });
-  res.json({ id: req.params.id, ...business });
+  res.json({ id: businessId, ...business });
+});
+
+// Also handle /api when rewritten with ?id=<value> query param by Vercel
+app.get("/api", (req, res, next) => {
+  if (req.query.id) {
+    const businessId = req.query.id;
+    const business = getBusiness(businessId);
+    if (!business) return res.status(404).json({ error: "Unknown business" });
+    return res.json({ id: businessId, ...business });
+  }
+  next();
 });
 
 async function handleGenerateReview(req, res) {
@@ -143,6 +161,7 @@ Examples of the tone to match:
   }
 
   try {
+    // Model name must match an enabled model for the GEMINI_API_KEY in production (check project/region access if generation_failed shows in logs)
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash-lite",
       contents: prompt,
@@ -158,7 +177,7 @@ Return strictly the ONE review sentence and nothing else.`,
     console.log(`[Gemini 3.5] Generated review for ${business.name}: "${sentence}"`);
     return res.json({ sentence, source: "gemini" });
   } catch (apiError) {
-    console.warn("Gemini API call failed, using fallback:", apiError.message);
+    console.error(`Gemini API call failed (${apiError.name || "Error"}${apiError.status ? ` - status ${apiError.status}` : ""}): ${apiError.message}`);
     return res.json({
       sentence: generateFallbackReview(ambience, taste, service),
       source: "fallback",
