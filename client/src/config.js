@@ -4,20 +4,17 @@ export const CATEGORIES = [
   {
     key: "ambience",
     label: "Ambience",
-    description: "The vibe of the cafe",
-    icon: "✨"
+    index: "01"
   },
   {
     key: "taste",
     label: "Taste",
-    description: "How the flavors hit",
-    icon: "☕"
+    index: "02"
   },
   {
     key: "service",
     label: "Service",
-    description: "How was the staff",
-    icon: "⚡"
+    index: "03"
   }
 ];
 
