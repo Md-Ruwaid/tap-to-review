@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { GoogleGenAI } = require("@google/genai");
+const { rateLimit } = require("express-rate-limit");
 const { getBusiness } = require("./config");
 
 const path = require("path");
@@ -11,8 +12,56 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const devOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:3000",
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // 1. Allow requests with no origin (curl, server-to-server, local testing)
+    if (!origin) return callback(null, true);
+
+    // 2. Allow localhost:5173 / localhost:3000 in development
+    const isDev = process.env.NODE_ENV !== "production";
+    if (isDev && devOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // 3. Allow any origin listed in ALLOWED_ORIGINS in production
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+};
+
+app.use(cors(corsOptions));
+app.use((err, req, res, next) => {
+  if (err && err.message === "Not allowed by CORS") {
+    return res.status(403).json({ error: "Not allowed by CORS." });
+  }
+  next(err);
+});
 app.use(express.json());
+
+// Rate limiter for review generation endpoint (defaults: 10 requests per minute per IP)
+const reviewLimiter = rateLimit({
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 60 * 1000,
+  max: Number(process.env.RATE_LIMIT_MAX) || 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please try again later." },
+  statusCode: 429,
+});
 
 function getAIClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -55,7 +104,18 @@ async function handleGenerateReview(req, res) {
     return res.status(400).json({ error: "Missing required tags." });
   }
 
-  const business = getBusiness(businessId) || { name: "this cafe" };
+  const defaultTags = getBusiness("randomCafe")?.tags || { ambience: [], taste: [], service: [] };
+  const business = getBusiness(businessId) || { name: "this cafe", tags: defaultTags };
+  const allowedTags = business.tags || defaultTags;
+
+  if (
+    !allowedTags.ambience.includes(tags.ambience) ||
+    !allowedTags.taste.includes(tags.taste) ||
+    !allowedTags.service.includes(tags.service)
+  ) {
+    return res.status(400).json({ error: "Invalid tag selection." });
+  }
+
   const { ambience, taste, service } = tags;
 
   const prompt = `Write ONE customer review sentence for a cafe called ${business.name}, based on: ambience = "${ambience}", taste = "${taste}", service = "${service}".
@@ -102,12 +162,13 @@ Return strictly the ONE review sentence and nothing else.`,
     return res.json({
       sentence: generateFallbackReview(ambience, taste, service),
       source: "fallback",
-      error: apiError.message
+      error: "generation_failed"
     });
   }
 }
 
-app.post(["/generate-review", "/api/generate-review", "/api", "/"], handleGenerateReview);
+// Review generation routes: supports direct calls, /api/ prefix, and Vercel serverless /api rewrite
+app.post(["/generate-review", "/api/generate-review", "/api"], reviewLimiter, handleGenerateReview);
 
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

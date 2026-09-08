@@ -41,9 +41,15 @@ tap-to-review/
 ```bash
 cd server
 npm install
-# Create .env and set GEMINI_API_KEY=your_key
+# Create .env and configure environment variables:
+# GEMINI_API_KEY=your_key
+# ALLOWED_ORIGINS=https://your-frontend.vercel.app,http://localhost:5173
 npm start
 ```
+**Environment Variables:**
+- `GEMINI_API_KEY` (required): Your Google Gemini API key.
+- `ALLOWED_ORIGINS` (optional): Comma-separated list of allowed frontend origins in production (e.g. `https://your-site.vercel.app`). Requests from `localhost:5173` and `localhost:3000` are automatically permitted in development.
+
 Server starts on `http://localhost:3000`.
 
 ### 2. Frontend Setup
