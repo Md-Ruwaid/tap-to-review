@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { CATEGORIES, DEFAULT_BUSINESS, API_BASE_URL } from "./config";
+import CentaurSlider from "./CentaurSlider";
+import { triggerHaptic } from "./haptics";
 import "./App.css";
 
 function App() {
@@ -37,10 +39,10 @@ function App() {
       });
   }, [businessId]);
 
-  const handleTagClick = (categoryKey, tag) => {
+  const handleTagSelect = (categoryKey, tag) => {
     setSelectedTags((prev) => ({
       ...prev,
-      [categoryKey]: prev[categoryKey] === tag ? null : tag,
+      [categoryKey]: tag,
     }));
   };
 
@@ -49,6 +51,7 @@ function App() {
 
   const handleGenerateClick = async () => {
     if (!isComplete || loading) return;
+    triggerHaptic("select");
     setLoading(true);
 
     try {
@@ -77,6 +80,7 @@ function App() {
         setSentence(data.sentence);
         setSource(data.source || "gemini");
         setSourceReason(data.reason || null);
+        triggerHaptic("success");
       } else {
         throw new Error("No review sentence returned");
       }
@@ -86,6 +90,7 @@ function App() {
       setSentence(fallback);
       setSource("fallback");
       setSourceReason(err.message.includes("401") ? "401_protected" : "offline");
+      triggerHaptic("success");
     } finally {
       setLoading(false);
     }
@@ -94,6 +99,7 @@ function App() {
   function copyToClipboard() {
     if (!sentence) return;
     navigator.clipboard.writeText(sentence);
+    triggerHaptic("success");
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   }
@@ -152,22 +158,13 @@ function App() {
                 </span>
               </div>
 
-              {/* Clean Tactile Pill Buttons */}
-              <div className="tags-row">
-                {tagOptions.map((tag) => {
-                  const isSelected = currentSelection === tag;
-                  return (
-                    <button
-                      key={tag}
-                      type="button"
-                      className={`tag-pill ${isSelected ? "selected" : ""}`}
-                      onClick={() => handleTagClick(category.key, tag)}
-                    >
-                      {tag}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Centaur Morphing Slider with attached tags */}
+              <CentaurSlider
+                categoryKey={category.key}
+                tags={tagOptions}
+                selectedTag={currentSelection}
+                onSelectTag={(tag) => handleTagSelect(category.key, tag)}
+              />
             </div>
           );
         })}

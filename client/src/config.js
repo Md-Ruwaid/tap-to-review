@@ -28,3 +28,62 @@ export const DEFAULT_BUSINESS = {
     service: ["quick", "friendly", "slow"]
   }
 };
+
+export const TAG_EMOJIS = {
+  // Ambience
+  cozy: "☕",
+  lively: "🎉",
+  quiet: "🤫",
+  chill: "🛋️",
+  aesthetic: "✨",
+  romantic: "🕯️",
+  vibrant: "⚡",
+  peaceful: "🌿",
+  crowded: "👥",
+  minimal: "🪴",
+
+  // Taste
+  craazyy: "🤤",
+  crazy: "🤤",
+  valid: "😋",
+  meh: "😐",
+  delicious: "😋",
+  yummy: "🤤",
+  fire: "🔥",
+  bland: "🧂",
+  sweet: "🍰",
+  fresh: "🍓",
+  top: "💯",
+  mid: "🤷",
+  bad: "🤢",
+
+  // Service
+  quick: "⚡",
+  fast: "🚀",
+  friendly: "😊",
+  slow: "🐢",
+  attentive: "🫡",
+  welcoming: "🤗",
+  rude: "😒",
+  great: "⭐",
+  laggy: "🐌",
+};
+
+export function getTagEmoji(tag, categoryKey = "", index = 0) {
+  if (!tag) return "✨";
+  const key = String(tag).toLowerCase().trim();
+  if (TAG_EMOJIS[key]) return TAG_EMOJIS[key];
+
+  const categoryFallbacks = {
+    ambience: ["☕", "🎉", "🤫"],
+    taste: ["🤤", "😋", "😐"],
+    service: ["⚡", "😊", "🐢"],
+  };
+
+  const fallbacks = categoryFallbacks[categoryKey];
+  if (fallbacks && fallbacks[index] !== undefined) {
+    return fallbacks[index];
+  }
+  return "✨";
+}
+
