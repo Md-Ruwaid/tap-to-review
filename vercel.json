@@ -1,0 +1,22 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "client/dist",
+  "rewrites": [
+    {
+      "source": "/business/:id",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/generate-review",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/api/:match*",
+      "destination": "/api/index.js"
+    }
+  ]
+}
