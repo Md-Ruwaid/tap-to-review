@@ -13,6 +13,9 @@ app.use(cors());
 app.use(express.json());
 
 const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+  console.warn("⚠️ WARNING: GEMINI_API_KEY is not set in environment variables! AI generation will fall back to static templates.");
+}
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Fallback — kept deliberately human-sounding too, in case this ever fires
@@ -94,8 +97,7 @@ Return strictly the ONE review sentence and nothing else.`,
   });
 }
 
-app.post("/generate-review", handleGenerateReview);
-app.post("/api/generate-review", handleGenerateReview);
+app.post(["/generate-review", "/api/generate-review", "/api", "/"], handleGenerateReview);
 
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

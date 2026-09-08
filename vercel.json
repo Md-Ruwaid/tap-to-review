@@ -4,19 +4,19 @@
   "rewrites": [
     {
       "source": "/business/:id",
-      "destination": "/api/index.js"
+      "destination": "/api"
     },
     {
       "source": "/generate-review",
-      "destination": "/api/index.js"
+      "destination": "/api"
     },
     {
       "source": "/health",
-      "destination": "/api/index.js"
+      "destination": "/api"
     },
     {
       "source": "/api/:match*",
-      "destination": "/api/index.js"
+      "destination": "/api"
     }
   ]
 }
