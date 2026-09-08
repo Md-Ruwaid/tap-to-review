@@ -12,11 +12,11 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  console.warn("⚠️ WARNING: GEMINI_API_KEY is not set in environment variables! AI generation will fall back to static templates.");
+function getAIClient() {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+  return new GoogleGenAI({ apiKey });
 }
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Fallback — kept deliberately human-sounding too, in case this ever fires
 function generateFallbackReview(ambience, taste, service) {
@@ -70,31 +70,39 @@ Examples of the tone to match:
 - "quiet spot, good for studying. coffee's decent, nothing crazy but does the job"
 - "was expecting more tbh — service was quick at least"`;
 
-  if (ai) {
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash-lite",
-        contents: prompt,
-        config: {
-          systemInstruction: `You are an everyday customer casually typing a quick 1-sentence review on your phone.
+  const ai = getAIClient();
+  if (!ai) {
+    console.warn("⚠️ GEMINI_API_KEY is not set in environment variables! AI generation falling back to static templates.");
+    return res.json({
+      sentence: generateFallbackReview(ambience, taste, service),
+      source: "fallback",
+      reason: "missing_api_key"
+    });
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash-lite",
+      contents: prompt,
+      config: {
+        systemInstruction: `You are an everyday customer casually typing a quick 1-sentence review on your phone.
 Sound natural, slightly rambly, and authentic. Never sound like an ad or AI bot.
 Never use these words: definitely, truly, overall, moreover, delightful, must-visit, highly recommend, vibe check, immaculate, no cap.
 Return strictly the ONE review sentence and nothing else.`,
-        },
-      });
-      let sentence = response.text.trim().replace(/^["'*]+|["'*]+$/g, "");
-      if (!sentence) throw new Error("Empty response");
-      console.log(`[Gemini 3.5] Generated review for ${business.name}: "${sentence}"`);
-      return res.json({ sentence, source: "gemini" });
-    } catch (apiError) {
-      console.warn("Gemini API call failed, using fallback:", apiError.message);
-    }
+      },
+    });
+    let sentence = response.text.trim().replace(/^["'*]+|["'*]+$/g, "");
+    if (!sentence) throw new Error("Empty response from Gemini");
+    console.log(`[Gemini 3.5] Generated review for ${business.name}: "${sentence}"`);
+    return res.json({ sentence, source: "gemini" });
+  } catch (apiError) {
+    console.warn("Gemini API call failed, using fallback:", apiError.message);
+    return res.json({
+      sentence: generateFallbackReview(ambience, taste, service),
+      source: "fallback",
+      error: apiError.message
+    });
   }
-
-  return res.json({
-    sentence: generateFallbackReview(ambience, taste, service),
-    source: "fallback",
-  });
 }
 
 app.post(["/generate-review", "/api/generate-review", "/api", "/"], handleGenerateReview);

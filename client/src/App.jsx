@@ -19,6 +19,7 @@ function App() {
   // Step 8: Editable sentence and copy state
   const [sentence, setSentence] = useState("");
   const [source, setSource] = useState(null);
+  const [sourceReason, setSourceReason] = useState(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -73,6 +74,9 @@ function App() {
       });
 
       if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error("401: Vercel Deployment Protection enabled");
+        }
         throw new Error(`Server error: ${res.status}`);
       }
 
@@ -80,15 +84,17 @@ function App() {
       if (data.sentence) {
         setSentence(data.sentence);
         setSource(data.source || "gemini");
+        setSourceReason(data.reason || null);
       } else {
         throw new Error("No review sentence returned");
       }
     } catch (err) {
       console.warn("Backend call failed, using client fallback:", err.message);
       // Failsafe client fallback per PRD guarantees demo never breaks
-      const fallback = `Honestly such a ${selectedTags.ambience} spot—service was super ${selectedTags.service} and the food was legit ${selectedTags.taste}, 10/10!`;
+      const fallback = `ngl the ${selectedTags.ambience} vibe caught me off guard, food was ${selectedTags.taste} and staff were ${selectedTags.service}`;
       setSentence(fallback);
       setSource("fallback");
+      setSourceReason(err.message.includes("401") ? "401_protected" : "offline");
     } finally {
       setLoading(false);
     }
@@ -236,7 +242,9 @@ function App() {
                 </span>
               ) : (
                 <span className="source-badge fallback">
-                  <span className="source-dot fallback-dot" /> ⚡ Offline Fallback Template
+                  <span className="source-dot fallback-dot" /> ⚡ Offline Fallback
+                  {sourceReason === "missing_api_key" && " (GEMINI_API_KEY missing in Vercel)"}
+                  {sourceReason === "401_protected" && " (Vercel Auth Protection blocking API)"}
                 </span>
               )}
             </div>
