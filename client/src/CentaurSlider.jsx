@@ -125,6 +125,7 @@ export default function CentaurSlider({
             max="100"
             step="0.5"
             value={sliderValue}
+            style={{ "--slider-val": `${sliderValue}%` }}
             onPointerDown={handlePointerDown}
             onTouchStart={handlePointerDown}
             onInput={handleSliderInput}

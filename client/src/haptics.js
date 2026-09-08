@@ -1,21 +1,21 @@
-// Mobile vibration feedback utility with safe fallback for unsupported browsers
+// Mobile vibration feedback utility with punchy, high-impact tactile feedback
 export function triggerHaptic(type = "tick") {
   if (typeof window === "undefined" || !window.navigator || !window.navigator.vibrate) {
     return;
   }
   try {
     if (type === "tick") {
-      // Crisp subtle tick during slider movement across tag thresholds
-      window.navigator.vibrate(12);
+      // Solid, hard tactile thud as slider crosses a tag boundary
+      window.navigator.vibrate(45);
     } else if (type === "snap") {
-      // Confirmatory dual-pulse snap when releasing onto an anchor
-      window.navigator.vibrate([16, 24, 18]);
+      // Heavy, punchy dual-pulse snap when releasing onto an anchor
+      window.navigator.vibrate([70, 45, 95]);
     } else if (type === "select") {
-      // Tactile button tap
-      window.navigator.vibrate(18);
+      // Hard tactile pulse on tap
+      window.navigator.vibrate(60);
     } else if (type === "success") {
-      // Copy to clipboard or generate success
-      window.navigator.vibrate([25, 40, 25]);
+      // Powerful confirmatory celebration buzz on copy / generate
+      window.navigator.vibrate([80, 50, 130]);
     }
   } catch {
     // Graceful fallback on restricted environments
