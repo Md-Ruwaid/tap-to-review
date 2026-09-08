@@ -42,6 +42,11 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // 4. Automatically permit Vercel deployment domains (*.vercel.app)
+    if (origin.endsWith(".vercel.app")) {
+      return callback(null, true);
+    }
+
     return callback(new Error("Not allowed by CORS"));
   },
 };
