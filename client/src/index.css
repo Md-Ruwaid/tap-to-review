@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-main: #0c0e14;
+  --bg-card: rgba(22, 26, 36, 0.85);
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+  --bg-pill: rgba(255, 255, 255, 0.04);
+  --bg-pill-border: rgba(255, 255, 255, 0.1);
+  --bg-pill-hover: rgba(255, 255, 255, 0.08);
+
+  --accent: #f59e0b;
+  --accent-glow: rgba(245, 158, 11, 0.25);
+  --accent-gradient: linear-gradient(135deg, #f59e0b, #ea580c);
+
+  --accent-selected: #f59e0b;
+  --accent-selected-bg: rgba(245, 158, 11, 0.15);
+  --accent-selected-border: #f59e0b;
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-main);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.08) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}

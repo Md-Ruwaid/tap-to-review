@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment Variables (NEVER commit secrets)
+.env
+.env.*
+server/.env
+server/.env.*
+*.env
+
+# Production builds
+dist/
+client/dist/
+
+# Logs & temp
+*.log
+npm-debug.log*
+
+# System & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
