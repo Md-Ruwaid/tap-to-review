@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 const { GoogleGenAI } = require("@google/genai");
 const { getBusiness } = require("./config");
 
+const path = require("path");
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 dotenv.config();
 
 const app = express();

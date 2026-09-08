@@ -1,4 +1,6 @@
+const path = require("path");
 const { GoogleGenAI } = require("@google/genai");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 require("dotenv").config();
 
 async function runTest() {
